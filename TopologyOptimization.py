@@ -58,8 +58,7 @@ def FE(nelx, nely, x, penal):
 
     # # SOLVER
     U[dof_free] = np.linalg.solve(
-        K[np.ix_(dof_free, dof_free)], F[dof_free]
-    )  # solve for displacement at free nodes
+        K[np.ix_(dof_free, dof_free)], F[dof_free])  # solve for displacement at free nodes
     U[dof_fixed] = 0  # fix geometrically constrained nodes
     return U
 
@@ -98,6 +97,7 @@ def OC(nelx: int, nely: int, x: np.array, volfrac: float, dc: np.array):
             l1 = lmid
         else:
             l2 = lmid
+            print(l1, l2)
     return xnew
 
 
@@ -116,6 +116,7 @@ def check(nelx, nely, rmin, x, dc):
                     )  # weighting factor with rmin as filter size minus distance between two elements
                     if fac > 0:
                         sum += fac
+                        print(f'sum is equal to',sum)
                         dcn[j, i] += fac * x[l, k] * dc[l, k]
             if sum > 0:
                 dcn[j, i] /= x[j, i] * sum
@@ -175,7 +176,6 @@ def make_animation(nelx, nely, x_hist):
     )
     plt.close(fig)
     return anim
-
 
 def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
     # main topology function
