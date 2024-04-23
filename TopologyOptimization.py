@@ -11,6 +11,7 @@ from IPython.display import HTML
 
 np.set_printoptions(precision=4)
 
+
 # Finite Element Code
 def FE(nelx, nely, x, penal):
     KE = lk()  # Global stiffness matrix
@@ -19,13 +20,14 @@ def FE(nelx, nely, x, penal):
     U = np.zeros(((nelx + 1) * (nely + 1) * 2, 1))
 
     # assembly
-    for elx in range(1,nelx+1):  # assemble global stiffness from elemental stiffness
-        for ely in range(1,nely+1):
+    for elx in range(1, nelx + 1):  # assemble global stiffness from elemental stiffness
+        for ely in range(1, nely + 1):
             n1 = (nely + 1) * (elx - 1) + ely
             # upper right element node number for element displacement Ue
             n2 = (nely + 1) * elx + ely
             # extract element disp from global disp
-            edof = np.array([
+            edof = np.array(
+                [
                     2 * n1 - 1,
                     2 * n1,
                     2 * n2 - 1,
@@ -34,10 +36,11 @@ def FE(nelx, nely, x, penal):
                     2 * n2 + 2,
                     2 * n1 + 1,
                     2 * n1 + 2,
-                ])
-            K[np.ix_(edof-1, edof-1)] += x[ely-1, elx-1] ** penal * KE
-    F[1,0] = -1
-    
+                ]
+            )
+            K[np.ix_(edof - 1, edof - 1)] += x[ely - 1, elx - 1] ** penal * KE
+    F[1, 0] = -1
+
     # loads and supports
     # identify geometrically constrained nodes from element x and y arrays
     dof_fixed = np.union1d(
@@ -47,14 +50,16 @@ def FE(nelx, nely, x, penal):
     dofs = np.arange(0, 2 * (nelx + 1) * (nely + 1))
     # filter mask to grab free nodes from node list
     dof_free = np.setdiff1d(dofs, dof_fixed)
-    
-    #Plotting all nodes (as a structured grid)
+
+    # Plotting all nodes (as a structured grid)
     for i in range(nelx + 1):
         for j in range(nely + 1):
-            plt.plot(i, j, 'o', color='lightgrey')
-    
+            plt.plot(i, j, "o", color="lightgrey")
+
     # # SOLVER
-    U[dof_free] = np.linalg.solve(K[np.ix_(dof_free, dof_free)], F[dof_free])  # solve for displacement at free nodes
+    U[dof_free] = np.linalg.solve(
+        K[np.ix_(dof_free, dof_free)], F[dof_free]
+    )  # solve for displacement at free nodes
     U[dof_fixed] = 0  # fix geometrically constrained nodes
     return U
 
@@ -75,14 +80,20 @@ def FE(nelx, nely, x, penal):
 #     plt.show()
 # plot_fixed_dofs(dof_fixed, nelx, nely)
 
+
 # Optimality Criteria Update Function with bi-sectioning algorithm
 def OC(nelx: int, nely: int, x: np.array, volfrac: float, dc: np.array):
     l1 = 0  # lower bi-sectioning bound
-    l2 = 1e5 # upper bi-sectioning bound
+    l2 = 1e5  # upper bi-sectioning bound
     move = 0.2  # sectioning increment
     while (l2 - l1) > 1e-4:
         lmid = 0.5 * (l2 + l1)  # middle bi-sectioning value
-        xnew = np.maximum( 0.001 ,np.maximum(x - move, np.minimum(1.0, np.minimum(x + move, x * np.sqrt(-dc / lmid)))),) 
+        xnew = np.maximum(
+            0.001,
+            np.maximum(
+                x - move, np.minimum(1.0, np.minimum(x + move, x * np.sqrt(-dc / lmid)))
+            ),
+        )
         if np.sum(xnew) - volfrac * nelx * nely > 0:
             l1 = lmid
         else:
@@ -94,18 +105,20 @@ def OC(nelx: int, nely: int, x: np.array, volfrac: float, dc: np.array):
 def check(nelx, nely, rmin, x, dc):
     dcn = np.zeros((nely, nelx))  # initialize
     rmin_floor = int(np.floor(rmin))
-    
+
     for i in range(nelx):  # first element in dependency check
         for j in range(nely):  # second element in dependency check
             sum = 0.0
             for k in range(max(i - rmin_floor, 0), min(i + rmin_floor + 1, nelx)):
                 for l in range(max(j - rmin_floor, 0), min(j + rmin_floor + 1, nely)):
-                    fac = rmin - np.sqrt((i - k) ** 2 + (j - l) ** 2) # weighting factor with rmin as filter size minus distance between two elements
+                    fac = rmin - np.sqrt(
+                        (i - k) ** 2 + (j - l) ** 2
+                    )  # weighting factor with rmin as filter size minus distance between two elements
                     if fac > 0:
                         sum += fac
                         dcn[j, i] += fac * x[l, k] * dc[l, k]
             if sum > 0:
-                dcn[j, i] /= (x[j, i] * sum)
+                dcn[j, i] /= x[j, i] * sum
     return dcn
 
 
@@ -124,8 +137,11 @@ def lk():
             1 / 8 - 3 * nu / 8,
         ]
     )
-    
-    KE = (E / (1 - nu**2) * np.array(
+
+    KE = (
+        E
+        / (1 - nu**2)
+        * np.array(
             [
                 [k[0], k[1], k[2], k[3], k[4], k[5], k[6], k[7]],
                 [k[1], k[0], k[7], k[6], k[5], k[4], k[3], k[2]],
@@ -138,18 +154,18 @@ def lk():
             ]
         )
     )
-    return KE # after assembly
+    return KE  # after assembly
 
 
 def make_animation(nelx, nely, x_hist):
     x_hist = x_hist[::2]
     fig, ax = plt.subplots()
     im = ax.imshow(-x_hist[0], cmap="gray", animated=True)
-    
+
     def update_frame(frame):
         x = -x_hist[frame]
         im.set_array(x)
-        return im,
+        return (im,)
 
     anim = animation.FuncAnimation(
         fig,
@@ -159,6 +175,7 @@ def make_animation(nelx, nely, x_hist):
     )
     plt.close(fig)
     return anim
+
 
 def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
     # main topology function
@@ -183,7 +200,7 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
         xold = np.copy(x)  # store current x
 
         if loop > n_iter:
-           break
+            break
 
         # FE Analysis
         U = FE(nelx, nely, x, penal)  # displacement vector U
@@ -192,35 +209,44 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
         KE = lk()
         c = 0.0  # initialize objective function value (compliance) as zero float type
         dc = np.zeros((nely, nelx))  # initialize sensitivity of objection function to 0
-        for ely in range(1,nely+1):  # nested for loop over element y component
-            for elx in range(1,nelx+1):  # nested foor loop over element x component
+        for ely in range(1, nely + 1):  # nested for loop over element y component
+            for elx in range(1, nelx + 1):  # nested foor loop over element x component
                 # upper left element node number for element displacement Ue
                 n1 = (nely + 1) * (elx - 1) + ely
                 # upper right element node number for element displacement Ue
                 n2 = (nely + 1) * (elx) + ely
                 Ue_indices = [
-                    2*n1 - 2, 
-                    2*n1 - 1, 
-                    2*n2 - 2, 
-                    2*n2 - 1, 
-                    2*n2, 
-                    2*n2 + 1, 
-                    2*n1, 
-                    2*n1 + 1]
+                    2 * n1 - 2,
+                    2 * n1 - 1,
+                    2 * n2 - 2,
+                    2 * n2 - 1,
+                    2 * n2,
+                    2 * n2 + 1,
+                    2 * n1,
+                    2 * n1 + 1,
+                ]
                 Ue = U[Ue_indices]  # Extract the displacement vector for the element
-                f_int = np.dot(Ue.T,np.dot(KE,Ue))
-                c += x[ely-1, elx-1] ** penal * f_int # add elemental contribution to objective function
-                dc[ely-1, elx-1] = -penal * x[ely-1, elx-1] ** (penal - 1) * f_int # sensitivity calculation of objective function
+                f_int = np.dot(Ue.T, np.dot(KE, Ue))
+                c += (
+                    x[ely - 1, elx - 1] ** penal * f_int
+                )  # add elemental contribution to objective function
+                dc[ely - 1, elx - 1] = (
+                    -penal * x[ely - 1, elx - 1] ** (penal - 1) * f_int
+                )  # sensitivity calculation of objective function
 
-        dc = check(nelx, nely, rmin, x, dc) # filter sensitivies with check function
-        x = OC(nelx, nely, x, volfrac, dc) # update design variable x based on OC function
-        change = np.max(np.abs(x - xold)) # calclulate max value to check convergence
-        print(f"Iteration: {loop}, Objective: {c.item():.4f}, Volume: {np.mean(x):.4f}, Change: {change:.4f}")
+        dc = check(nelx, nely, rmin, x, dc)  # filter sensitivies with check function
+        x = OC(
+            nelx, nely, x, volfrac, dc
+        )  # update design variable x based on OC function
+        change = np.max(np.abs(x - xold))  # calclulate max value to check convergence
+        print(
+            f"Iteration: {loop}, Objective: {c.item():.4f}, Volume: {np.mean(x):.4f}, Change: {change:.4f}"
+        )
 
         x_hist.append(x.copy())
     return (nelx, nely, x_hist)
 
-    #plot demonstrating convergence
+    # plot demonstrating convergence
     # plt.figure(figsize=(10, 6))
     # plt.plot(range(1, len(c) + 1), c, marker='o', linestyle='-', color='b')
     # plt.title('Objective Function Convergence')
@@ -231,11 +257,11 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
 
 
 if __name__ == "__main__":  # execute main with specified parameters
-    nelx = 60# number elements in x axis
+    nelx = 60  # number elements in x axis
     nely = 30  # number elements in y axis
     volfrac = 0.5  # fractional volume to remain after optimization
     penal = 3.0  # penalization factor for intermediate density values
-    rmin = 1.5 # prevents checkerboarding and mesh dependancies (filter size)
+    rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
 
     # for animation output
     nelx, nely, x_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=300)
