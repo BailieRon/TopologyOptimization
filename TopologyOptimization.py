@@ -116,7 +116,6 @@ def check(nelx, nely, rmin, x, dc):
                     )  # weighting factor with rmin as filter size minus distance between two elements
                     if fac > 0:
                         sum += fac
-                        print(f'sum is equal to',sum)
                         dcn[j, i] += fac * x[l, k] * dc[l, k]
             if sum > 0:
                 dcn[j, i] /= x[j, i] * sum
