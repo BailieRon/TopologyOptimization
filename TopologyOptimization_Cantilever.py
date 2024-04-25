@@ -39,14 +39,10 @@ def FE(nelx, nely, x, penal):
                 ]
             )
             K[np.ix_(edof - 1, edof - 1)] += x[ely - 1, elx - 1] ** penal * KE
-    #F[1, 0] = -1
     F[2 * (nelx + 1) * (nely + 1) - 1, 0] = -1
     # loads and supports
     # identify geometrically constrained nodes from element x and y arrays
     dof_fixed = np.arange(0, 2 * (nely + 1))
-    # dof_fixed = np.union1d(
-    #     np.arange(0, 2 * (nely + 1), 2), np.array([2 * (nelx + 1) * (nely + 1) - 1])
-    # )
     # array of nodes from element x and y arrays
     dofs = np.arange(0, 2 * (nelx + 1) * (nely + 1))
     # filter mask to grab free nodes from node list
