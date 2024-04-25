@@ -58,7 +58,8 @@ def FE(nelx, nely, x, penal):
 
     # # SOLVER
     U[dof_free] = np.linalg.solve(
-        K[np.ix_(dof_free, dof_free)], F[dof_free])  # solve for displacement at free nodes
+        K[np.ix_(dof_free, dof_free)], F[dof_free]
+    )  # solve for displacement at free nodes
     U[dof_fixed] = 0  # fix geometrically constrained nodes
     return U
 
@@ -175,6 +176,7 @@ def make_animation(nelx, nely, x_hist):
     )
     plt.close(fig)
     return anim
+
 
 def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
     # main topology function
