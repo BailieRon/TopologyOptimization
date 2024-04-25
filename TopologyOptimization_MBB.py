@@ -64,7 +64,7 @@ def FE(nelx, nely, x, penal):
     return U
 
 
-# plotting to visualize fixed and free DOF's
+#plotting to visualize fixed and free DOF's
 # def plot_fixed_dofs(dof_fixed, nelx, nely):
 #     # Your plotting code here, using nelx and nely
 #     nodes_x = (dof_fixed // 2) % (nelx + 1)  # X coordinate of the node
@@ -246,14 +246,15 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
         x_hist.append(x.copy())
     return (nelx, nely, x_hist)
 
-    # plot demonstrating convergence
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(range(1, len(c) + 1), c, marker='o', linestyle='-', color='b')
-    # plt.title('Objective Function Convergence')
-    # plt.xlabel('Iteration Number')
-    # plt.ylabel('Objective Function Value')
-    # plt.grid(True)
-    # plt.show()
+def convergencePlot(c):
+# plot demonstrating convergence
+    plt.figure(figsize=(10, 6))
+    plt.plot(range(1, len(c) + 1), c, marker='o', linestyle='-', color='b')
+    plt.title('Objective Function Convergence')
+    plt.xlabel('Iteration Number')
+    plt.ylabel('Objective Function Value')
+    plt.grid(True)
+    plt.show()
 
 
 if __name__ == "__main__":  # execute main with specified parameters
@@ -264,7 +265,7 @@ if __name__ == "__main__":  # execute main with specified parameters
     rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
 
     # for animation output
-    nelx, nely, x_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=300)
+    nelx, nely, x_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=200)
     anim = make_animation(nelx, nely, x_hist)
     HTML(anim.to_html5_video())
     anim.save("topOpt_HalfMBB.mp4", fps=10, extra_args=["-vcodec", "libx264"])
