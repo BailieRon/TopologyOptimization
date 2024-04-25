@@ -98,7 +98,6 @@ def OC(nelx: int, nely: int, x: np.array, volfrac: float, dc: np.array):
             l1 = lmid
         else:
             l2 = lmid
-            print(l1, l2)
     return xnew
 
 
@@ -268,4 +267,4 @@ if __name__ == "__main__":  # execute main with specified parameters
     nelx, nely, x_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=300)
     anim = make_animation(nelx, nely, x_hist)
     HTML(anim.to_html5_video())
-    anim.save("WORK/out/topOpt.mp4", fps=10, extra_args=["-vcodec", "libx264"])
+    anim.save("topOpt_HalfMBB.mp4", fps=10, extra_args=["-vcodec", "libx264"])
