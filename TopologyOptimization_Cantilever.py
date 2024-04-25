@@ -39,13 +39,14 @@ def FE(nelx, nely, x, penal):
                 ]
             )
             K[np.ix_(edof - 1, edof - 1)] += x[ely - 1, elx - 1] ** penal * KE
-    F[1, 0] = -1
-
+    #F[1, 0] = -1
+    F[2 * (nelx + 1) * (nely + 1) - 1, 0] = -1
     # loads and supports
     # identify geometrically constrained nodes from element x and y arrays
-    dof_fixed = np.union1d(
-        np.arange(0, 2 * (nely + 1), 2), np.array([2 * (nelx + 1) * (nely + 1) - 1])
-    )
+    dof_fixed = np.arange(0, 2 * (nely + 1))
+    # dof_fixed = np.union1d(
+    #     np.arange(0, 2 * (nely + 1), 2), np.array([2 * (nelx + 1) * (nely + 1) - 1])
+    # )
     # array of nodes from element x and y arrays
     dofs = np.arange(0, 2 * (nelx + 1) * (nely + 1))
     # filter mask to grab free nodes from node list
@@ -257,14 +258,14 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
 
 
 if __name__ == "__main__":  # execute main with specified parameters
-    nelx = 60  # number elements in x axis
-    nely = 30  # number elements in y axis
-    volfrac = 0.5  # fractional volume to remain after optimization
+    nelx = 32  # number elements in x axis
+    nely = 20  # number elements in y axis
+    volfrac = 0.4  # fractional volume to remain after optimization
     penal = 3.0  # penalization factor for intermediate density values
-    rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
+    rmin = 1.2  # prevents checkerboarding and mesh dependancies (filter size)
 
     # for animation output
     nelx, nely, x_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=300)
     anim = make_animation(nelx, nely, x_hist)
     HTML(anim.to_html5_video())
-    anim.save("topOpt_HalfMBB.mp4", fps=10, extra_args=["-vcodec", "libx264"])
+    anim.save("topOpt_Cantilever.mp4", fps=10, extra_args=["-vcodec", "libx264"])
