@@ -16,6 +16,7 @@ Icon
 *.vtk
 *.pyc
 *.pdf
+*.asv
 
 
 # Byte-compiled / optimized / DLL files
