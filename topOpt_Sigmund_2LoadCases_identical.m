@@ -30,32 +30,23 @@ while change > 0.01;
         end
       end
   end
-% For single load case
-  % for ely = 1:nely
-  %   for elx = 1:nelx
-  %     n1 = (nely+1)*(elx-1)+ely; 
-  %     n2     = (nely+1)* elx   +ely;
-  %     Ue = U([2*n1-1;2*n1; 2*n2-1;2*n2; 2*n2+1;2*n2+2; 2*n1+1;2*n1+2],1);
-  %     f_int = Ue'*KE*Ue;
-  %     c = c + x(ely,elx)^penal*Ue'*KE*Ue;
-  %     %disp(f_int);
-  %     %disp(c);
-  %     dc(ely,elx) = -penal*x(ely,elx)^(penal-1)*Ue'*KE*Ue;
-  %   end
-  % end
-  %disp(sum(sum(KE)))
+
+  %disp(sum(sum(KE))) %DEBUGGING PRINTS
   %disp(sum(sum(Ue)))
   %disp(f_int)
   %disp(c)
+
 % FILTERING OF SENSITIVITIES
   [dc]   = check(nelx,nely,rmin,x,dc);    
 % DESIGN UPDATE BY THE OPTIMALITY CRITERIA METHOD
   [x]    = OC(nelx,nely,x,volfrac,dc); 
 % PRINT RESULTS
-  %disp(xold)
+
+  %disp(xold) %DEBUGGING PRINTS
   %disp(x)
   %disp(max(max(abs(xold))));
   %disp(sum(sum(abs(xold))));
+
   change = max(max(abs(x-xold)));
   disp([' It.: ' sprintf('%4i',loop) ' Obj.: ' sprintf('%10.4f',c) ...
        ' Vol.: ' sprintf('%6.3f',sum(sum(x))/(nelx*nely)) ...
@@ -95,12 +86,9 @@ end
 function [U]=FE(nelx,nely,x,penal)
 [KE] = lk; 
 K = sparse(2*(nelx+1)*(nely+1), 2*(nelx+1)*(nely+1));
-%ONE LOAD CASE
-% F = sparse(2*(nely+1)*(nelx+1),1); 
-% U = zeros(2*(nely+1)*(nelx+1),1);
 %TWO LOAD CASES
-F = sparse(2*(nely+1)*(nelx+1),2);
-U = sparse(2*(nely+1)*(nelx+1),2);
+F = sparse(2*(nely+1)*(nelx+1),2); %2 at the end represents 2 load cases
+U = sparse(2*(nely+1)*(nelx+1),2); %2 at the end represents 2 load cases
 for elx = 1:nelx
   for ely = 1:nely
     n1 = (nely+1)*(elx-1)+ely;
@@ -109,19 +97,14 @@ for elx = 1:nelx
     K(edof,edof) = K(edof,edof) + x(ely,elx)^penal*KE;
   end
 end
-%disp(K(end-3:end, end-3:end));
+
+%disp(K(end-3:end, end-3:end)); %DEBUGGING PRINTS
 %disp(sum(sum(abs(KE))));
 %disp(x(ely,elx));
-% DEFINE LOADS AND SUPPORTS (HALF MBB-BEAM)
-% F(2,1) = -1;
-%fixeddofs   = union([1:2:2*(nely+1)],[2*(nelx+1)*(nely+1)]);
-
-%TWO LOADED PROBLEM
-F(2*(nelx+1)*(nely+1),1) = -1.;
-            F(2*(nelx)*(nely+1)+2,2) = 1.;
 
 %DEFINE LOADS AND SUPPORTS (CANTILEVER)
-%F(2*(nelx+1)*(nely+1),1) = -1;
+F(2*(nelx+1)*(nely+1),1) = -1.;
+            F(2*(nelx)*(nely+1)+2,2) = 1.;
 fixeddofs = [1:2*(nely+1)];
 
 alldofs     = [1:2*(nely+1)*(nelx+1)];
@@ -137,7 +120,7 @@ k=[ 1/2-nu/6   1/8+nu/8 -1/4-nu/12 -1/8+3*nu/8 ...
    -1/4+nu/12 -1/8-nu/8  nu/6       1/8-3*nu/8];
 KE = E/(1-nu^2)*[ k(1) k(2) k(3) k(4) k(5) k(6) k(7) k(8)
                   k(2) k(1) k(8) k(7) k(6) k(5) k(4) k(3)
-                  k(3) k(8) k(1) k(6) k(7) k(4) k(5) k(2)
+                  k(3) k(8) k(1) k(6) k(7]][) k(4) k(5) k(2)
                   k(4) k(7) k(6) k(1) k(8) k(3) k(2) k(5)
                   k(5) k(6) k(7) k(8) k(1) k(2) k(3) k(4)
                   k(6) k(5) k(4) k(3) k(2) k(1) k(8) k(7)
