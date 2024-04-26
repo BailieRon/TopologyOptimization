@@ -104,7 +104,7 @@ end
 
 %DEFINE LOADS AND SUPPORTS (CANTILEVER)
 F(2*(nelx+1)*(nely+1),1) = -1.;
-            F(2*(nelx)*(nely+1)+2,2) = 1.;
+            F(2*(nelx)*(nely+1)+2,1) = 1.;
 fixeddofs = [1:2*(nely+1)];
 
 alldofs     = [1:2*(nely+1)*(nelx+1)];
