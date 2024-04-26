@@ -1,7 +1,18 @@
 function top(nelx,nely,volfrac,penal,rmin);
 % INITIALIZE
 n_iter = 100;
-x(1:nely,1:nelx) = volfrac; 
+x(1:nely,1:nelx) = volfrac;
+for ely = 1:nely
+    for elx = 1:nelx
+        if sqrt((ely-nely/2.)^2+(elx-nelx/3.)^2) < nely/3.
+
+            passive(ely,elx) = 1;
+            x(ely,elx) = 0.001;
+        else
+            passive(ely,elx) = 0;
+        end
+    end
+end
 loop = 0; 
 change = 1.;
 % START ITERATION
@@ -50,7 +61,7 @@ while change > 0.01;
 % FILTERING OF SENSITIVITIES
   [dc]   = check(nelx,nely,rmin,x,dc);    
 % DESIGN UPDATE BY THE OPTIMALITY CRITERIA METHOD
-  [x]    = OC(nelx,nely,x,volfrac,dc); 
+  [x]    = OC(nelx,nely,x,volfrac,dc, passive); 
 % PRINT RESULTS
   %disp(xold)
   %disp(x)
@@ -64,11 +75,12 @@ while change > 0.01;
   colormap(gray); imagesc(-x); axis equal; axis tight; axis off;pause(1e-6);
 end 
 %%%%%%%%%% OPTIMALITY CRITERIA UPDATE %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [xnew]=OC(nelx,nely,x,volfrac,dc)  
+function [xnew]=OC(nelx,nely,x,volfrac,dc,passive)  
 l1 = 0; l2 = 100000; move = 0.2;
 while (l2-l1 > 1e-4)
   lmid = 0.5*(l2+l1);
   xnew = max(0.001,max(x-move,min(1.,min(x+move,x.*sqrt(-dc./lmid)))));
+  xnew(find(passive)) = 0.001;
   if sum(sum(xnew)) - volfrac*nelx*nely > 0;
     l1 = lmid;
   else
