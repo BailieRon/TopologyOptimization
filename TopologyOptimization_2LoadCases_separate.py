@@ -16,8 +16,12 @@ np.set_printoptions(precision=4)
 def FE(nelx, nely, x, penal):
     KE = lk()  # Global stiffness matrix
     K = np.zeros(((nelx + 1) * (nely + 1) * 2, (nelx + 1) * (nely + 1) * 2))
-    F = np.zeros(((nelx + 1) * (nely + 1) * 2, 1))
-    U = np.zeros(((nelx + 1) * (nely + 1) * 2, 1))
+    F = np.zeros(
+        ((nelx + 1) * (nely + 1) * 2, 2)
+    )  # last number indicates num load cases
+    U = np.zeros(
+        ((nelx + 1) * (nely + 1) * 2, 2)
+    )  # last number indicates num load cases
 
     # assembly
     for elx in range(1, nelx + 1):  # assemble global stiffness from elemental stiffness
@@ -39,13 +43,14 @@ def FE(nelx, nely, x, penal):
                 ]
             )
             K[np.ix_(edof - 1, edof - 1)] += x[ely - 1, elx - 1] ** penal * KE
-    F[1, 0] = -1
 
     # loads and supports
+    F[2 * (nelx + 1) * (nely + 1) - 1, 0] = -1  # load case 1
+    F[2 * (nelx) * (nely + 1) + 1, 1] = 1  # load case 2
+
     # identify geometrically constrained nodes from element x and y arrays
-    dof_fixed = np.union1d(
-        np.arange(0, 2 * (nely + 1), 2), np.array([2 * (nelx + 1) * (nely + 1) - 1])
-    )
+    dof_fixed = np.arange(0, 2 * (nely + 1))
+    # dof_fixed = np.union1d(np.arange(0, 2 * (nely + 1), 2), np.array([2 * (nelx + 1) * (nely + 1 ) - 1]))
     # array of nodes from element x and y arrays
     dofs = np.arange(0, 2 * (nelx + 1) * (nely + 1))
     # filter mask to grab free nodes from node list
@@ -215,6 +220,7 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
                 n1 = (nely + 1) * (elx - 1) + ely
                 # upper right element node number for element displacement Ue
                 n2 = (nely + 1) * (elx) + ely
+                # for i in range (0,1):
                 Ue_indices = [
                     2 * n1 - 2,
                     2 * n1 - 1,
@@ -225,14 +231,44 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
                     2 * n1,
                     2 * n1 + 1,
                 ]
-                Ue = U[Ue_indices]  # Extract the displacement vector for the element
-                f_int = np.dot(Ue.T, np.dot(KE, Ue))
-                c += (
-                    x[ely - 1, elx - 1] ** penal * f_int
-                )  # add elemental contribution to objective function
-                dc[ely - 1, elx - 1] = (
-                    -penal * x[ely - 1, elx - 1] ** (penal - 1) * f_int
-                )  # sensitivity calculation of objective function
+                #         Ue = U[Ue_indices]  # Extract the displacement vector for the element
+                #         f_int = np.dot(Ue.T, np.dot(KE, Ue))
+                #         c += (
+                #             x[ely - 1, elx - 1] ** penal * f_int
+                #         )  # add elemental contribution to objective function
+                #         dc[ely - 1, elx - 1] = (
+                #             -penal * x[ely - 1, elx - 1] ** (penal - 1) * f_int
+                #         )  # sensitivity calculation of objective function
+                # Objective function and sensitivity analysis
+                # KE = lk()
+                # c = 0.0  # initialize objective function value (compliance) as zero float type
+                # dc = np.zeros((nely, nelx))  # initialize sensitivity of objection function to 0
+
+                # for ely in range(nely):
+                #     for elx in range(nelx):
+                #         n1 = (nely + 1) * elx + ely + 1
+                #         n2 = (nely + 1) * (elx + 1) + ely + 1
+                #         Ue_indices = [
+                #             2 * n1 - 2,
+                #             2 * n1 - 1,
+                #             2 * n2 - 2,
+                #             2 * n2 - 1,
+                #             2 * n2,
+                #             2 * n2 + 1,
+                #             2 * n1,
+                #             2 * n1 + 1
+                #         ]
+
+                # Loop over each load case
+                for i in range(2):  # U has two columns, one for each load case
+                    Ue = U[
+                        Ue_indices, i
+                    ]  # Extract the displacement vector for the element for load case i
+                    f_int = np.dot(Ue.T, np.dot(KE, Ue))
+                    c += x[ely - 1, elx - 1] ** penal * f_int
+                    dc[ely - 1, elx - 1] -= (
+                        penal * x[ely - 1, elx - 1] ** (penal - 1) * f_int
+                    )
 
         dc = check(nelx, nely, rmin, x, dc)  # filter sensitivies with check function
         x = OC(
@@ -257,14 +293,16 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
 
 
 if __name__ == "__main__":  # execute main with specified parameters
-    nelx = 60  # number elements in x axis
+    nelx = 30  # number elements in x axis
     nely = 30  # number elements in y axis
-    volfrac = 0.5  # fractional volume to remain after optimization
+    volfrac = 0.4  # fractional volume to remain after optimization
     penal = 3.0  # penalization factor for intermediate density values
-    rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
+    rmin = 1.2  # prevents checkerboarding and mesh dependancies (filter size)
 
     # for animation output
     nelx, nely, x_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=300)
     anim = make_animation(nelx, nely, x_hist)
     HTML(anim.to_html5_video())
-    anim.save("topOpt_HalfMBB.mp4", fps=10, extra_args=["-vcodec", "libx264"])
+    anim.save(
+        "topOpt_2LoadCases_identical.mp4", fps=10, extra_args=["-vcodec", "libx264"]
+    )
