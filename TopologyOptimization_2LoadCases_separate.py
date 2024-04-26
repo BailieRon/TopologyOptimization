@@ -16,8 +16,8 @@ np.set_printoptions(precision=4)
 def FE(nelx, nely, x, penal):
     KE = lk()  # Global stiffness matrix
     K = np.zeros(((nelx + 1) * (nely + 1) * 2, (nelx + 1) * (nely + 1) * 2))
-    F = np.zeros(((nelx + 1) * (nely + 1) * 2, 1)) #last number indicates num load cases
-    U = np.zeros(((nelx + 1) * (nely + 1) * 2, 1)) #last number indicates num load cases
+    F = np.zeros(((nelx + 1) * (nely + 1) * 2, 1))
+    U = np.zeros(((nelx + 1) * (nely + 1) * 2, 1))
 
     # assembly
     for elx in range(1, nelx + 1):  # assemble global stiffness from elemental stiffness
@@ -39,13 +39,13 @@ def FE(nelx, nely, x, penal):
                 ]
             )
             K[np.ix_(edof - 1, edof - 1)] += x[ely - 1, elx - 1] ** penal * KE
-       
-    # loads and supports     
-    F[2 * (nelx + 1) * (nely + 1) - 1, 0] = -1 # load case 1
-    #F[2 * (nelx + 1) * (nely + 1) - 1, 1] = 1  # load case 2
+    F[1, 0] = -1
 
+    # loads and supports
     # identify geometrically constrained nodes from element x and y arrays
-    dof_fixed = np.arange(0, 2 * (nely + 1))
+    dof_fixed = np.union1d(
+        np.arange(0, 2 * (nely + 1), 2), np.array([2 * (nelx + 1) * (nely + 1) - 1])
+    )
     # array of nodes from element x and y arrays
     dofs = np.arange(0, 2 * (nelx + 1) * (nely + 1))
     # filter mask to grab free nodes from node list
@@ -215,7 +215,6 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
                 n1 = (nely + 1) * (elx - 1) + ely
                 # upper right element node number for element displacement Ue
                 n2 = (nely + 1) * (elx) + ely
-                #for i in range (0,1):
                 Ue_indices = [
                     2 * n1 - 2,
                     2 * n1 - 1,
