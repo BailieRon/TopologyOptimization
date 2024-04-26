@@ -1,10 +1,10 @@
 function top(nelx,nely,volfrac,penal,rmin);
 % INITIALIZE
-n_iter = 100;
+%n_iter = 100;
 x(1:nely,1:nelx) = volfrac;
 for ely = 1:nely
     for elx = 1:nelx
-        if sqrt((ely-nely/2.)^2+(elx-nelx/3.)^2) < nely/3.
+        if sqrt((ely-nely/7.)^2+(elx-nelx/13.)^2) < nely/7. % passive circle coordinates and size
 
             passive(ely,elx) = 1;
             x(ely,elx) = 0.001;
@@ -102,12 +102,12 @@ function [U]=FE(nelx,nely,x,penal)
 K = sparse(2*(nelx+1)*(nely+1), 2*(nelx+1)*(nely+1));
 
 %ONE LOAD CASE
-F = sparse(2*(nely+1)*(nelx+1),1); 
-U = zeros(2*(nely+1)*(nelx+1),1);
+% F = sparse(2*(nely+1)*(nelx+1),1); 
+% U = zeros(2*(nely+1)*(nelx+1),1);
 
 %TWO LOAD CASES
-% F = sparse(2*(nely+1)*(nelx+1),2);
-% U = sparse(2*(nely+1)*(nelx+1),2);
+F = sparse(2*(nely+1)*(nelx+1),2);
+U = sparse(2*(nely+1)*(nelx+1),2);
 
 for elx = 1:nelx
   for ely = 1:nely
@@ -123,8 +123,8 @@ end
 %disp(x(ely,elx));
 
 %DEFINE LOADS AND SUPPORTS (CANTILEVER)
-F(2*(nelx+1)*(nely+1),1) = -1;
-            %F(2*(nelx)*(nely+1)+2,2) = 1; % second load case
+F(2*(nelx+1)*(nely+1),1) = -600;
+            F(2*(nelx)*(nely+1)+2,2) = 200; % second load case
 fixeddofs = [1:2*(nely+1)];
 
 alldofs     = [1:2*(nely+1)*(nelx+1)];
