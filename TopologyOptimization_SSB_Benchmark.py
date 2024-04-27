@@ -44,7 +44,7 @@ def FE(nelx, nely, x, penal):
     # loads and supports
     # identify geometrically constrained nodes from element x and y arrays
     dof_fixed = np.union1d(
-        np.arange(0, 2 * (nely + 1), 2), np.array([2 * (nelx + 1) * (nely + 1) - 1])
+        np.array([2 * (nelx + 1) * (nely + 1) - 1], np.array([2 * (nelx + 1) * (nely + 1) - 1]))
     )
     # array of nodes from element x and y arrays
     dofs = np.arange(0, 2 * (nelx + 1) * (nely + 1))
