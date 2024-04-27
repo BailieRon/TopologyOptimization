@@ -1,8 +1,4 @@
 import numpy as np
-import scipy as sp
-from scipy import sparse
-from scipy.sparse.linalg import spsolve
-from scipy.sparse import csr_matrix
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib import animation
@@ -17,7 +13,7 @@ from element_stiffness_2D import lk
 np.set_printoptions(precision=4)
 
 # Finite Element Code
-def FE(nelx, nely, x, penal):
+def FE(nelx, nely, x, penal, F, dof_fixed):
     KE = lk()  # Global stiffness matrix
     K = np.zeros(((nelx + 1) * (nely + 1) * 2, (nelx + 1) * (nely + 1) * 2))
     F = np.zeros(((nelx + 1) * (nely + 1) * 2, 1))
@@ -26,10 +22,8 @@ def FE(nelx, nely, x, penal):
     # assembly
     for elx in range(1, nelx + 1):  # assemble global stiffness from elemental stiffness
         for ely in range(1, nely + 1):
-            n1 = (nely + 1) * (elx - 1) + ely
-            # upper right element node number for element displacement Ue
-            n2 = (nely + 1) * elx + ely
-            # extract element disp from global disp
+            n1 = (nely + 1) * (elx - 1) + ely # upper right element node number for  Ue
+            n2 = (nely + 1) * elx + ely # extract element disp from global disp
             edof = np.array(
                 [
                     2 * n1 - 1,
@@ -170,7 +164,7 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
         print(
             f"Iteration: {loop}, Objective: {c.item():.4f}, Volume: {np.mean(x):.4f}, Change: {change:.4f}"
         )
-
+        
         x_hist.append(x.copy())
     return (nelx, nely, x_hist)
 
@@ -186,8 +180,8 @@ def convergencePlot(c):
 
 
 if __name__ == "__main__":  # execute main with specified parameters
-    nelx = 60  # number elements in x axis
-    nely = 30  # number elements in y axis
+    nelx = 10  # number elements in x axis
+    nely = 10  # number elements in y axis
     volfrac = 0.5  # fractional volume to remain after optimization
     penal = 3.0  # penalization factor for intermediate density values
     rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
