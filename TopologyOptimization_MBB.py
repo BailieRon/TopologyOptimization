@@ -13,7 +13,7 @@ from element_stiffness_2D import lk
 np.set_printoptions(precision=4)
 
 # Finite Element Code
-def FE(nelx, nely, x, penal, F, dof_fixed):
+def FE(nelx, nely, x, penal):
     KE = lk()  # Global stiffness matrix
     K = np.zeros(((nelx + 1) * (nely + 1) * 2, (nelx + 1) * (nely + 1) * 2))
     F = np.zeros(((nelx + 1) * (nely + 1) * 2, 1))
@@ -78,7 +78,6 @@ def FE(nelx, nely, x, penal, F, dof_fixed):
 #     plt.show()
 # plot_fixed_dofs(dof_fixed, nelx, nely)
 
-
 def make_animation(nelx, nely, x_hist):
     x_hist = x_hist[::2]
     fig, ax = plt.subplots()
@@ -98,23 +97,15 @@ def make_animation(nelx, nely, x_hist):
     plt.close(fig)
     return anim
 
-
 def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
-    # main topology function
-    # nelx = num elements in x axis
-    # nely = num elements in y axis
-    # volfrac = fractional volume to remain after optimization
-    # penal = penalization factor for intermediate density values
-    # rmin = prevents checkerboarding and mesh dependancies (filter size)
-
     # initialization
     x_hist = []  # Store x for animation
+    c_hist = []
     x = np.ones((nely, nelx)) * volfrac  # initialize matrix populated by volfrac,
     # initial material distribution to set element density
     loop = 0  # intialize iterations for optimization
     change = 1.0  # updates iter
 
-    # iteration
     while (
         change > 0.01
     ):  # continues as change > 0.01, at which point convergence is observed
@@ -156,6 +147,7 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
                     -penal * x[ely - 1, elx - 1] ** (penal - 1) * f_int
                 )  # sensitivity calculation of objective function
 
+        c_hist.append(c.item())
         dc = check(nelx, nely, rmin, x, dc)  # filter sensitivies with check function
         x = OC(
             nelx, nely, x, volfrac, dc
@@ -166,28 +158,28 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
         )
         
         x_hist.append(x.copy())
-    return (nelx, nely, x_hist)
+    return (nelx, nely, x_hist, c_hist)
 
-def convergencePlot(c):
+def convergencePlot(c_hist):
 # plot demonstrating convergence
     plt.figure(figsize=(10, 6))
-    plt.plot(range(1, len(c) + 1), c, marker='o', linestyle='-', color='b')
+    plt.plot(range(1, len(c_hist) + 1), c_hist, marker='o', linestyle='-', color='b')
     plt.title('Objective Function Convergence')
     plt.xlabel('Iteration Number')
     plt.ylabel('Objective Function Value')
     plt.grid(True)
     plt.show()
 
-
 if __name__ == "__main__":  # execute main with specified parameters
-    nelx = 10  # number elements in x axis
-    nely = 10  # number elements in y axis
+    nelx = 60  # number elements in x axis
+    nely = 30  # number elements in y axis
     volfrac = 0.5  # fractional volume to remain after optimization
     penal = 3.0  # penalization factor for intermediate density values
     rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
 
     # for animation output
-    nelx, nely, x_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=200)
+    nelx, nely, x_hist, c_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=200)
+    convergencePlot(c_hist)
     anim = make_animation(nelx, nely, x_hist)
     HTML(anim.to_html5_video())
     anim.save("topOpt_HalfMBB.mp4", fps=10, extra_args=["-vcodec", "libx264"])
