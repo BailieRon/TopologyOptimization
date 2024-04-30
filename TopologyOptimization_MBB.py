@@ -184,7 +184,7 @@ if __name__ == "__main__":  # execute main with specified parameters
 
     # for animation output
     nelx, nely, x_hist, c_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=200)
-    convergencePlot(c_hist)
     anim = make_animation(nelx, nely, x_hist)
     HTML(anim.to_html5_video())
     anim.save("topOpt_HalfMBB.mp4", fps=10, extra_args=["-vcodec", "libx264"])
+    convergencePlot(c_hist)
