@@ -12,6 +12,7 @@ from element_stiffness_2D import lk
 
 np.set_printoptions(precision=4)
 
+
 # Finite Element Code
 def FE(nelx, nely, x, penal):
     KE = lk()  # Global stiffness matrix
@@ -22,8 +23,8 @@ def FE(nelx, nely, x, penal):
     # assembly
     for elx in range(1, nelx + 1):  # assemble global stiffness from elemental stiffness
         for ely in range(1, nely + 1):
-            n1 = (nely + 1) * (elx - 1) + ely # upper right element node number for  Ue
-            n2 = (nely + 1) * elx + ely # extract element disp from global disp
+            n1 = (nely + 1) * (elx - 1) + ely  # upper right element node number for  Ue
+            n2 = (nely + 1) * elx + ely  # extract element disp from global disp
             edof = np.array(
                 [
                     2 * n1 - 1,
@@ -62,7 +63,7 @@ def FE(nelx, nely, x, penal):
     return U
 
 
-#plotting to visualize fixed and free DOF's
+# plotting to visualize fixed and free DOF's
 # def plot_fixed_dofs(dof_fixed, nelx, nely):
 #     # Your plotting code here, using nelx and nely
 #     nodes_x = (dof_fixed // 2) % (nelx + 1)  # X coordinate of the node
@@ -77,6 +78,7 @@ def FE(nelx, nely, x, penal):
 #     plt.grid(True)
 #     plt.show()
 # plot_fixed_dofs(dof_fixed, nelx, nely)
+
 
 def make_animation(nelx, nely, x_hist):
     x_hist = x_hist[::2]
@@ -96,6 +98,7 @@ def make_animation(nelx, nely, x_hist):
     )
     plt.close(fig)
     return anim
+
 
 def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
     # initialization
@@ -156,19 +159,21 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
         print(
             f"Iteration: {loop}, Objective: {c.item():.4f}, Volume: {np.mean(x):.4f}, Change: {change:.4f}"
         )
-        
+
         x_hist.append(x.copy())
     return (nelx, nely, x_hist, c_hist)
 
+
 def convergencePlot(c_hist):
-# plot demonstrating convergence
+    # plot demonstrating convergence
     plt.figure(figsize=(10, 6))
-    plt.plot(range(1, len(c_hist) + 1), c_hist, marker='o', linestyle='-', color='b')
-    plt.title('Objective Function Convergence')
-    plt.xlabel('Iteration Number')
-    plt.ylabel('Objective Function Value')
+    plt.plot(range(1, len(c_hist) + 1), c_hist, marker="o", linestyle="-", color="b")
+    plt.title("Objective Function Convergence")
+    plt.xlabel("Iteration Number")
+    plt.ylabel("Objective Function Value")
     plt.grid(True)
     plt.show()
+
 
 if __name__ == "__main__":  # execute main with specified parameters
     nelx = 60  # number elements in x axis
