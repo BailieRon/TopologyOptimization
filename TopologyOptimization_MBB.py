@@ -9,6 +9,7 @@ from IPython.display import HTML
 from mesh_filter import check
 from optimality_criteria import OC
 from element_stiffness_2D import lk
+from convergence_plot import convergencePlot
 
 np.set_printoptions(precision=4)
 
@@ -38,7 +39,8 @@ def FE(nelx, nely, x, penal):
                 ]
             )
             K[np.ix_(edof - 1, edof - 1)] += x[ely - 1, elx - 1] ** penal * KE
-    F[1, 0] = -1
+    load_node = 1
+    F[load_node, 0] = -1
 
     # loads and supports
     # identify geometrically constrained nodes from element x and y arrays
@@ -50,10 +52,21 @@ def FE(nelx, nely, x, penal):
     # filter mask to grab free nodes from node list
     dof_free = np.setdiff1d(dofs, dof_fixed)
 
-    # Plotting all nodes (as a structured grid)
-    for i in range(nelx + 1):
-        for j in range(nely + 1):
-            plt.plot(i, j, "o", color="lightgrey")
+    # Plotting all nodes with color coding for special nodes
+    for i in range(nelx):
+        for j in range(nely):
+            node_index = i * (nely + 1) + j
+            if node_index in dof_fixed:
+                plt.plot(i, j, 'o', color='red')  # Red for fixed nodes
+            elif node_index == load_node:
+                plt.plot(i, j, 'o', color='green')  # Green for load nodes
+            else:
+                plt.plot(i, j, 'o', color='lightgrey')  # Default for other nodes
+
+    # # Plotting all nodes (as a structured grid)
+    # for i in range(nelx + 1):
+    #     for j in range(nely + 1):
+    #         plt.plot(i, j, "o", color="lightgrey")
 
     # # SOLVER
     U[dof_free] = np.linalg.solve(
@@ -176,9 +189,9 @@ def convergencePlot(c_hist):
 
 
 if __name__ == "__main__":  # execute main with specified parameters
-    nelx = 60  # number elements in x axis
-    nely = 30  # number elements in y axis
-    volfrac = 0.5  # fractional volume to remain after optimization
+    nelx = 20  # number elements in x axis
+    nely = 10  # number elements in y axis
+    volfrac = 0.2  # fractional volume to remain after optimization
     penal = 3.0  # penalization factor for intermediate density values
     rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
 
