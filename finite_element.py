@@ -60,4 +60,4 @@ def FE(nelx, nely, x, penal, lk):
     )  # solve for displacement at free nodes
     U[dof_fixed] = 0  # fix geometrically constrained nodes
     
-    return U
+    return U, dof_fixed

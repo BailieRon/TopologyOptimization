@@ -11,22 +11,9 @@ from optimality_criteria import OC
 from element_stiffness_2D import lk
 from finite_element import FE
 from make_animation import make_animation
-from plotting_functions import convergencePlot
+from plotting_functions import convergencePlot, plot_nodes
 
 np.set_printoptions(precision=4)
-
-#Plotting all nodes with color coding for special nodes
-def plot_fixed_dofs(dof_fixed, nelx, nely, load_node):
-    for i in range(nelx):
-        for j in range(nely):
-            node_index = i * (nely + 1) + j
-            if node_index in dof_fixed:
-                dof_plot = plt.plot(i, j, 'o', color='red')  # Red for fixed nodes
-            elif node_index == load_node:
-                dof_plot = plt.plot(i, j, 'o', color='green')  # Green for load nodes
-            else:
-                dof_plot = plt.plot(i, j, 'o', color='lightgrey')  # Default for other nodes
-    plt.show() 
 
 def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
     # initialization
@@ -47,7 +34,7 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
             break
 
         # FE Analysis
-        U = FE(nelx, nely, x, penal, lk)  # displacement vector U
+        U, dof_fixed = FE(nelx, nely, x, penal, lk)  # displacement vector U
 
         # Objective function and sensitivity analysis
         KE = lk()
@@ -71,6 +58,7 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
                 ]
                 Ue = U[Ue_indices]  # Extract the displacement vector for the element
                 f_int = np.dot(Ue.T, np.dot(KE, Ue))
+                f_int = f_int.item()
                 c += (
                     x[ely - 1, elx - 1] ** penal * f_int
                 )  # add elemental contribution to objective function
@@ -89,7 +77,7 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
         )
 
         x_hist.append(x.copy())
-    return (nelx, nely, x_hist, c_hist)
+    return (nelx, nely, x_hist, c_hist, dof_fixed)
 
 if __name__ == "__main__":  # execute main with specified parameters
     nelx = 60  # number elements in x axis
@@ -99,9 +87,11 @@ if __name__ == "__main__":  # execute main with specified parameters
     rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
 
     # for animation output
-    nelx, nely, x_hist, c_hist = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=200)
+    nelx, nely, x_hist, c_hist, dof_fixed = topOpt(nelx, nely, volfrac, penal, rmin, n_iter=200)
     anim = make_animation(nelx, nely, x_hist)
     HTML(anim.to_html5_video())
     anim.save("topOpt_HalfMBB.mp4", fps=10, extra_args=["-vcodec", "libx264"])
     # for convergence plot
     convergencePlot(c_hist)
+    # for boundary condition plot
+    plot_nodes(nelx, nely, dof_fixed)
