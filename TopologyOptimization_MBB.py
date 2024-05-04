@@ -92,8 +92,8 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
     return (nelx, nely, x_hist, c_hist)
 
 if __name__ == "__main__":  # execute main with specified parameters
-    nelx = 10  # number elements in x axis
-    nely = 20  # number elements in y axis
+    nelx = 60  # number elements in x axis
+    nely = 30  # number elements in y axis
     volfrac = 0.5  # fractional volume to remain after optimization
     penal = 3.0  # penalization factor for intermediate density values
     rmin = 1.5  # prevents checkerboarding and mesh dependancies (filter size)
