@@ -52,35 +52,12 @@ def FE(nelx, nely, x, penal):
     # filter mask to grab free nodes from node list
     dof_free = np.setdiff1d(dofs, dof_fixed)
 
-    # Plotting all nodes (as a structured grid)
-    for i in range(nelx + 1):
-        for j in range(nely + 1):
-            plt.plot(i, j, "o", color="lightgrey")
-
     # # SOLVER
     U[dof_free] = np.linalg.solve(
         K[np.ix_(dof_free, dof_free)], F[dof_free]
     )  # solve for displacement at free nodes
     U[dof_fixed] = 0  # fix geometrically constrained nodes
     return U
-
-
-# plotting to visualize fixed and free DOF's
-# def plot_fixed_dofs(dof_fixed, nelx, nely):
-#     # Your plotting code here, using nelx and nely
-#     nodes_x = (dof_fixed // 2) % (nelx + 1)  # X coordinate of the node
-#     nodes_y = (dof_fixed // 2) // (nelx + 1)  # Y coordinate of the node
-#     # Highlighting fixed nodes
-#     plt.plot(nodes_x, nodes_y, 'o', color='red', label='Fixed DoFs')
-#     plt.legend()
-#     plt.xlabel('X coordinate')
-#     plt.ylabel('Y coordinate')
-#     plt.title('Fixed Degrees of Freedom in the Mesh')
-#     plt.gca().invert_yaxis()  # Invert y-axis to match the typical FEA node layout
-#     plt.grid(True)
-#     plt.show()
-# plot_fixed_dofs(dof_fixed, nelx, nely)
-
 
 # Optimality Criteria Update Function with bi-sectioning algorithm
 def OC(nelx: int, nely: int, x: np.array, volfrac: float, dc: np.array):
@@ -246,16 +223,6 @@ def topOpt(nelx, nely, volfrac, penal, rmin, n_iter: int):
 
         x_hist.append(x.copy())
     return (nelx, nely, x_hist)
-
-    # plot demonstrating convergence
-    # plt.figure(figsize=(10, 6))
-    # plt.plot(range(1, len(c) + 1), c, marker='o', linestyle='-', color='b')
-    # plt.title('Objective Function Convergence')
-    # plt.xlabel('Iteration Number')
-    # plt.ylabel('Objective Function Value')
-    # plt.grid(True)
-    # plt.show()
-
 
 if __name__ == "__main__":  # execute main with specified parameters
     nelx = 30  # number elements in x axis

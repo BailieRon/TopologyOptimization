@@ -39,6 +39,7 @@ def FE(nelx, nely, x, penal):
                 ]
             )
             K[np.ix_(edof - 1, edof - 1)] += x[ely - 1, elx - 1] ** penal * KE
+   
     F[2 * (nelx + 1) * (nely + 1) - 1, 0] = -1
     # loads and supports
     # identify geometrically constrained nodes from element x and y arrays
@@ -59,24 +60,6 @@ def FE(nelx, nely, x, penal):
     )  # solve for displacement at free nodes
     U[dof_fixed] = 0  # fix geometrically constrained nodes
     return U
-
-
-# plotting to visualize fixed and free DOF's
-# def plot_fixed_dofs(dof_fixed, nelx, nely):
-#     # Your plotting code here, using nelx and nely
-#     nodes_x = (dof_fixed // 2) % (nelx + 1)  # X coordinate of the node
-#     nodes_y = (dof_fixed // 2) // (nelx + 1)  # Y coordinate of the node
-#     # Highlighting fixed nodes
-#     plt.plot(nodes_x, nodes_y, 'o', color='red', label='Fixed DoFs')
-#     plt.legend()
-#     plt.xlabel('X coordinate')
-#     plt.ylabel('Y coordinate')
-#     plt.title('Fixed Degrees of Freedom in the Mesh')
-#     plt.gca().invert_yaxis()  # Invert y-axis to match the typical FEA node layout
-#     plt.grid(True)
-#     plt.show()
-# plot_fixed_dofs(dof_fixed, nelx, nely)
-
 
 # Optimality Criteria Update Function with bi-sectioning algorithm
 def OC(nelx: int, nely: int, x: np.array, volfrac: float, dc: np.array):
